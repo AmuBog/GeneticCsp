@@ -22,7 +22,7 @@ namespace GeneticCsp
             //PrintMat(solutions);
             fitness = FitnessFind(solutions, cspGraph, fitness);
 
-            for(int i = 0; i < fitness.Length; i++)
+            for(int i = 0; i < fitness.Length/2; i++)
             {
                 Console.WriteLine(fitness[i]);
             }
