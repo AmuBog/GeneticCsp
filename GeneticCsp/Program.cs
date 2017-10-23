@@ -18,11 +18,13 @@ namespace GeneticCsp
             char[,] solutions = new char[20, 6];
             int[] fitness = new int[solutions.GetLength(0)];
 
+            //Make initial random solutions
             solutions = InitSolutions(solutions);
             //PrintMat(solutions);
+            //Find the Fitness of the solutions.
             fitness = FitnessFind(solutions, cspGraph, fitness);
 
-            for(int i = 0; i < fitness.Length/2; i++)
+            for (int i = 0; i < fitness.Length / 2; i++)
             {
                 Console.WriteLine(fitness[i]);
             }
@@ -67,7 +69,6 @@ namespace GeneticCsp
 
             return fitness;
         }
-
         static void PrintMat(char[,] solutions)
         {
             for (int i = 0; i < solutions.GetLength(0); i++)
