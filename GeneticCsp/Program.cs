@@ -6,6 +6,10 @@ namespace GeneticCsp
     {
         static void Main(string[] args)
         {
+            //Random number generator
+            Random rnd = new Random();
+            
+            //The graph to be optimized
             int[,] cspGraph = 
             {
                      { 0, 1, 1, 0, 0, 0 },
@@ -15,83 +19,110 @@ namespace GeneticCsp
                      { 0, 1, 1, 0, 0, 1 },
                      { 0, 0, 0, 1, 1, 0 }
             };
-            char[,] solutions = new char[20, 6];
+            //Matix to store solutions
+            char[,] solutions = new char[20, cspGraph.GetLength(0)];
+            //Array to store the fitness
             int[] fitness = new int[solutions.GetLength(0)];
-
             //Make initial random solutions
-            solutions = InitSolutions(solutions);
-            //Find the Fitness of the solutions
-            fitness = FitnessFind(solutions, cspGraph, fitness);
-            //sort the solutions
-            SortMat(fitness, solutions);
-            Mate(solutions);
+            solutions = InitSolutions(solutions, rnd);
+            
+            for(int i = 0; i<10; i++)
+            {
+                //Find the Fitness of the solutions
+                fitness = FitnessFind(solutions, cspGraph, fitness);
+
+                //sort the solutions
+                SortMat(fitness, solutions);
+
+                //make new children of the best solutions
+                Mate(solutions, rnd);
+            }
             //Print the solutions
             PrintMat(solutions);
 
-            //for (int i = 0; i < fitness.Length; i++)
-            //{
-            //    Console.WriteLine(fitness[i]);
-            //}
-
             Console.Read();
         }
-        static char[,] InitSolutions(char[,] solutions)
+        //Method to make initial solutions
+        static char[,] InitSolutions(char[,] solutions, Random rnd)
         {
-            Random rnd = new Random();
+            //Save half the length of the solution matrix
             int initSol = solutions.GetLength(0) / 2;
 
+            //Array holding the different colors
             char[] colors = { 'r', 'b', 'w'};
 
+            //Filling half of the solution matrix
             for (int i = 0; i<initSol; i++)
             {
+                //Getting random colors and fill the matrix with them
                 for (int j = 0; j<solutions.GetLength(1); j++)
-                {
+                {                  
                     int color = rnd.Next(colors.Length);
                     solutions[i, j] = colors[color];                
                 }
             }
             return solutions;
         }
+        //Method to calculate the fitness of the solutions
         static int[] FitnessFind(char[,] solutions, int[,] cspGraph, int[] fitness)
-        {           
+        {
+            //Outer loop changing what solution is worked on
             for (int solution = 0; solution < solutions.GetLength(0);solution++)
             {
+                //Reset fitnett count for each solution
                 int fit = 0;
-                for(int i = 0; i < cspGraph.GetLength(0); i++)
+                //Nested loop construction counting the fitness of each solution
+                for (int i = 0; i < cspGraph.GetLength(0); i++)
                 {
+                    //Get the color of the node
                     char color = solutions[solution, i];
                     for(int j = i;j<cspGraph.GetLength(1); j++)
                     {
+                        //Check if the neighbor has the same color
                         if (cspGraph[i, j] == 1 && solutions[solution, j].Equals(color))
                         {
                             fit++;
                         }                        
                     }
                 }
+                //Storing the fitness inside the fitness array
                 fitness[solution] = fit;
             }
 
             return fitness;
         }
-        static void Mate(char[,] solutions)
-        {
-            Random rnd = new Random();
-            int rng1, rng2, child;
+        //Make new solutions of the best solutions
+        static void Mate(char[,] solutions, Random rnd)
+        {            
+            int rng1, rng2, temp, child;
 
-            for (int i = 0; i < 16; i += 2)
+            //Make children starting from the middle of the solution matrix
+            for (int i = 0; i < solutions.GetLength(0)/2; i += 2)
             {
+                //Get two random numbers to set a range for two-point crossover
+                rng1 = rnd.Next(solutions.GetLength(1));
+                rng2 = rnd.Next(solutions.GetLength(1));
+                while (rng1 == rng2)
+                {
+                    rng2 = rnd.Next(solutions.GetLength(1));
+                }
+
+                //Make sure rng1 is less than rng2
+                if (rng2 < rng1)
+                {
+                    temp = rng2;
+                    rng2 = rng1;
+                    rng1 = temp;
+                }
+
+                //Set the position in which the child solution gets placed
                 child = (solutions.GetLength(0) / 2) + i;
-                rng1 = rnd.Next(solutions.GetLength(0));
-                do
-                    rng2 = rnd.Next(solutions.GetLength(0));
-                while (rng1 == rng2);
-
-                CopyRow(solutions, i, child);
-                CopyRow(solutions, i + 1, child + 1);
-
-
+                //Make two children with two-point crossover from two parents
+                CopyRow(solutions, i, child, rng1, rng2);
+                CopyRow(solutions, i + 1, child + 1, rng1, rng2);
             }
         }
+        //Print the solutions matrix
         static void PrintMat(char[,] solutions)
         {
             for (int i = 0; i < solutions.GetLength(0); i++)
@@ -101,10 +132,11 @@ namespace GeneticCsp
                     if (j != 0)
                         Console.Write(solutions[i, j]);
                     else
-                        Console.Write("\n" + solutions[i, j]);
+                        Console.Write("\n" + i + ": " + solutions[i, j]);
                 }
             }
         }
+        //Sort the matrix so the fittest solutions is at the top
         static void SortMat(int[] fitness, char[,] solutions)
         {
             int temp;
@@ -122,6 +154,7 @@ namespace GeneticCsp
                 }
             }
         }
+        //Used by the SortMat method to sort the solutions matrix
         static char[,] SwapRow(char [,] solutions, int swap)
         {
             char temp;
@@ -135,11 +168,22 @@ namespace GeneticCsp
 
             return solutions;
         }
-        static void CopyRow(char[,] solutions, int from, int into)
+        //Used by the Mate method to copy the solutions to the child solutions
+        static void CopyRow(char[,] solutions, int from, int into, int rng1, int rng2)
         {
-            for(int i = 0; i < solutions.GetLength(1);i++)
+            Console.WriteLine(rng1 + " " + rng2);
+
+            for (int i = 0; i < solutions.GetLength(1); i++)
             {
-                solutions[into, i] = solutions[from, i];
+                if (i < rng1 || i > rng2)
+                    solutions[into, i] = solutions[from, i];
+                else
+                {
+                    if (from % 2 == 0)
+                        solutions[into, i] = solutions[from + 1, i];
+                    else
+                        solutions[into, i] = solutions[from - 1, i];
+                }
             }
         }
     }
