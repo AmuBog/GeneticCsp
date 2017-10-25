@@ -8,25 +8,16 @@ namespace GeneticCsp
         {
             //Random number generator
             Random rnd = new Random();
-            
             //The graph to be optimized
-            int[,] cspGraph = 
-            {
-                     { 0, 1, 1, 0, 0, 0 },
-                     { 1, 0, 0, 1, 1, 0 },
-                     { 1, 0, 0, 1, 1, 0 },
-                     { 0, 1, 1, 0, 0, 1 },
-                     { 0, 1, 1, 0, 0, 1 },
-                     { 0, 0, 0, 1, 1, 0 }
-            };
+            int[,] cspGraph = GetMatrix(2);
             //Matix to store solutions
             char[,] solutions = new char[20, cspGraph.GetLength(0)];
             //Array to store the fitness
             int[] fitness = new int[solutions.GetLength(0)];
             //Make initial random solutions
             solutions = InitSolutions(solutions, rnd);
-            
-            for(int i = 0; i<10; i++)
+
+            for (int i = 0; i < 10; i++)
             {
                 //Find the Fitness of the solutions
                 fitness = FitnessFind(solutions, cspGraph, fitness);
@@ -38,7 +29,7 @@ namespace GeneticCsp
                 Mate(solutions, rnd);
             }
             //Print the solutions
-            PrintMat(solutions);
+            PrintMat(solutions, fitness);
 
             Console.Read();
         }
@@ -49,16 +40,16 @@ namespace GeneticCsp
             int initSol = solutions.GetLength(0) / 2;
 
             //Array holding the different colors
-            char[] colors = { 'r', 'b', 'w'};
+            char[] colors = { 'r', 'b', 'w' };
 
             //Filling half of the solution matrix
-            for (int i = 0; i<initSol; i++)
+            for (int i = 0; i < initSol; i++)
             {
                 //Getting random colors and fill the matrix with them
-                for (int j = 0; j<solutions.GetLength(1); j++)
-                {                  
+                for (int j = 0; j < solutions.GetLength(1); j++)
+                {
                     int color = rnd.Next(colors.Length);
-                    solutions[i, j] = colors[color];                
+                    solutions[i, j] = colors[color];
                 }
             }
             return solutions;
@@ -67,7 +58,7 @@ namespace GeneticCsp
         static int[] FitnessFind(char[,] solutions, int[,] cspGraph, int[] fitness)
         {
             //Outer loop changing what solution is worked on
-            for (int solution = 0; solution < solutions.GetLength(0);solution++)
+            for (int solution = 0; solution < solutions.GetLength(0); solution++)
             {
                 //Reset fitnett count for each solution
                 int fit = 0;
@@ -76,13 +67,13 @@ namespace GeneticCsp
                 {
                     //Get the color of the node
                     char color = solutions[solution, i];
-                    for(int j = i;j<cspGraph.GetLength(1); j++)
+                    for (int j = i; j < cspGraph.GetLength(1); j++)
                     {
                         //Check if the neighbor has the same color
                         if (cspGraph[i, j] == 1 && solutions[solution, j].Equals(color))
                         {
                             fit++;
-                        }                        
+                        }
                     }
                 }
                 //Storing the fitness inside the fitness array
@@ -93,11 +84,11 @@ namespace GeneticCsp
         }
         //Make new solutions of the best solutions
         static void Mate(char[,] solutions, Random rnd)
-        {            
+        {
             int rng1, rng2, temp, child;
 
             //Make children starting from the middle of the solution matrix
-            for (int i = 0; i < solutions.GetLength(0)/2; i += 2)
+            for (int i = 0; i < solutions.GetLength(0) / 2; i += 2)
             {
                 //Get two random numbers to set a range for two-point crossover
                 rng1 = rnd.Next(solutions.GetLength(1));
@@ -123,16 +114,18 @@ namespace GeneticCsp
             }
         }
         //Print the solutions matrix
-        static void PrintMat(char[,] solutions)
+        static void PrintMat(char[,] solutions, int[] fitness)
         {
             for (int i = 0; i < solutions.GetLength(0); i++)
             {
                 for (int j = 0; j < solutions.GetLength(1); j++)
                 {
-                    if (j != 0)
+                    if (j == 0)
+                        Console.Write("\n" + i + ": " + solutions[i, j]);                    
+                    else if (j != 0 && j<solutions.GetLength(1)-1)
                         Console.Write(solutions[i, j]);
                     else
-                        Console.Write("\n" + i + ": " + solutions[i, j]);
+                        Console.Write(solutions[i, j] + ": " + fitness[i]);
                 }
             }
         }
@@ -140,29 +133,32 @@ namespace GeneticCsp
         static void SortMat(int[] fitness, char[,] solutions)
         {
             int temp;
-            for(int i = 0; i < fitness.Length; i++)
+            for (int i = 0; i < fitness.Length; i++)
             {
-                for(int j = 1; j < fitness.Length; j++)
+                for (int j = 1; j < fitness.Length; j++)
                 {
-                    if (fitness[j-1] > fitness[j])
+                    //Sorting the fitness array and the 2D matrix using bubble sort
+                    if (fitness[j - 1] > fitness[j])
                     {
-                        temp = fitness[j-1];
-                        fitness[j-1] = fitness[j];
+                        temp = fitness[j - 1];
+                        fitness[j - 1] = fitness[j];
                         fitness[j] = temp;
+                        //Sending rows to be swapped in 2D array
                         solutions = SwapRow(solutions, j);
                     }
                 }
             }
         }
         //Used by the SortMat method to sort the solutions matrix
-        static char[,] SwapRow(char [,] solutions, int swap)
+        static char[,] SwapRow(char[,] solutions, int swap)
         {
             char temp;
 
-            for(int i = 0; i<solutions.GetLength(1); i++)
+            //Swapping two rows putting the fittest on top using bubblesort
+            for (int i = 0; i < solutions.GetLength(1); i++)
             {
-                temp = solutions[swap-1, i];
-                solutions[swap-1, i] = solutions[swap, i];
+                temp = solutions[swap - 1, i];
+                solutions[swap - 1, i] = solutions[swap, i];
                 solutions[swap, i] = temp;
             }
 
@@ -173,18 +169,66 @@ namespace GeneticCsp
         {
             Console.WriteLine(rng1 + " " + rng2);
 
+            //Copy row from parent to child included two-point crosover
             for (int i = 0; i < solutions.GetLength(1); i++)
             {
+                //solutions taken from parent 1
                 if (i < rng1 || i > rng2)
                     solutions[into, i] = solutions[from, i];
+                //Solutions taken from parent 2
                 else
                 {
+                    //If even number, the range is taken from the solution below
                     if (from % 2 == 0)
                         solutions[into, i] = solutions[from + 1, i];
+                    //Else the range is taken from the solution above
                     else
                         solutions[into, i] = solutions[from - 1, i];
                 }
             }
+        }
+        static int[,] GetMatrix(int choice)
+        {
+            int[,] graph;
+            switch (choice)
+            {
+                case 1:
+                    graph = new int[,]
+                    {
+                         { 0, 1, 1, 0, 0, 0 },
+                         { 1, 0, 0, 1, 1, 0 },
+                         { 1, 0, 0, 1, 1, 0 },
+                         { 0, 1, 1, 0, 0, 1 },
+                         { 0, 1, 1, 0, 0, 1 },
+                         { 0, 0, 0, 1, 1, 0 }
+                    };
+                    break;
+                case 2:
+                    graph = new int[,]
+                    {
+                         { 0, 1, 1, 0, 0, 0, 0, 0 },
+                         { 1, 0, 0, 0, 1, 0, 0, 1 },
+                         { 1, 0, 0, 1, 1, 0, 0, 0 },
+                         { 0, 0, 1, 0, 1, 1, 0, 0 },
+                         { 0, 1, 1, 1, 0, 0, 1, 0 },
+                         { 0, 0, 0, 1, 0, 0, 0, 1 },
+                         { 0, 0, 0, 0, 1, 0, 0, 1 },
+                         { 0, 1, 0, 0, 0, 1, 1, 0 },
+                    };
+                    break;
+                default:
+                    graph = new int[,]
+{
+                         { 0, 1, 1, 0, 0, 0 },
+                         { 1, 0, 0, 1, 1, 0 },
+                         { 1, 0, 0, 1, 1, 0 },
+                         { 0, 1, 1, 0, 0, 1 },
+                         { 0, 1, 1, 0, 0, 1 },
+                         { 0, 0, 0, 1, 1, 0 }
+};
+                    break;
+            }
+            return graph;
         }
     }
 }
