@@ -9,7 +9,7 @@ namespace GeneticCsp
             //Random number generator
             Random rnd = new Random();
             //The graph to be optimized
-            int[,] cspGraph = GetMatrix(2);
+            int[,] cspGraph = GetMatrix(1);
             int rows = 20;
             //Matix to store solutions
             char[,] solutions = new char[rows, cspGraph.GetLength(0)];
@@ -28,8 +28,8 @@ namespace GeneticCsp
                 Mate(solutions, rnd);
                 
                 //Find the Fitness of the solutions
-                fitness = FitnessFind(solutions, cspGraph, fitness);
-
+                fitness = FitnessFind(solutions, cspGraph, fitness);               
+                
                 //sort the solutions
                 SortMat(fitness, solutions);               
             }
@@ -116,6 +116,25 @@ namespace GeneticCsp
                 //Make two children with two-point crossover from two parents
                 CopyRow(solutions, i, child, rng1, rng2);
                 CopyRow(solutions, i + 1, child + 1, rng1, rng2);
+
+                double mut1 = rnd.NextDouble();
+                double mut2 = rnd.NextDouble();
+
+                //mutations
+                if (mut1 > 0.9)
+                {
+                    int place = rnd.Next(solutions.GetLength(1));
+                    char color = solutions[child, place];
+
+                    solutions[child, place] = GetColor(rnd, color);
+                } 
+                if (mut2 > 0.9)
+                {
+                    int place = rnd.Next(solutions.GetLength(1));
+                    char color = solutions[child+1, place];
+
+                    solutions[child+1, place] = GetColor(rnd, color);
+                } 
             }
         }
         //Print the solutions matrix
@@ -234,6 +253,17 @@ namespace GeneticCsp
                     break;
             }
             return graph;
+        } 
+        static char GetColor(Random rnd, char originColor)
+        {
+            char[] colors = { 'r', 'b', 'w'};
+            char color;
+
+            color = colors[rnd.Next(colors.Length)];
+            while (color.Equals(originColor))
+                color = colors[rnd.Next(colors.Length)];
+
+            return color;
         }
     }
 }
