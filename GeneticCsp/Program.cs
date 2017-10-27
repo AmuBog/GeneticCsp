@@ -10,23 +10,28 @@ namespace GeneticCsp
             Random rnd = new Random();
             //The graph to be optimized
             int[,] cspGraph = GetMatrix(2);
+            int rows = 20;
             //Matix to store solutions
-            char[,] solutions = new char[20, cspGraph.GetLength(0)];
+            char[,] solutions = new char[rows, cspGraph.GetLength(0)];
             //Array to store the fitness
             int[] fitness = new int[solutions.GetLength(0)];
             //Make initial random solutions
             solutions = InitSolutions(solutions, rnd);
 
-            for (int i = 0; i < 10; i++)
+            fitness = FitnessFind(solutions, cspGraph, fitness);
+
+            SortMat(fitness, solutions);
+
+            for (int i = 0; i < 5; i++)
             {
+                //make new children of the best solutions
+                Mate(solutions, rnd);
+                
                 //Find the Fitness of the solutions
                 fitness = FitnessFind(solutions, cspGraph, fitness);
 
                 //sort the solutions
-                SortMat(fitness, solutions);
-
-                //make new children of the best solutions
-                Mate(solutions, rnd);
+                SortMat(fitness, solutions);               
             }
             //Print the solutions
             PrintMat(solutions, fitness);
