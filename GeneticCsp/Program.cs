@@ -1,22 +1,28 @@
 ﻿using System;
+using System.Diagnostics;
+using System.IO;
 
 namespace GeneticCsp {
     class Program {
         static void Main(string[] args) {
             //Random number generator
-            Random rnd = new Random();
+            Random rnd = new Random();            
+            Stopwatch time = new Stopwatch();
+
             int best;
             int i = 0;
             int stagnated = 0;
             bool stop = false;
             //The graph to be optimized
-            int[,] cspGraph = MakeGraph(12);
-            PrintGraph(cspGraph);
-            int rows = 20;
+            int[,] cspGraph = MakeGraph(100);
+            //PrintGraph(cspGraph);
+            int rows = 20;           
             //Matix to store solutions
             char[,] solutions = new char[rows, cspGraph.GetLength(0)];
             //Array to store the fitness
             int[] fitness = new int[solutions.GetLength(0)];
+
+            time.Start();
             //Make initial random solutions
             solutions = InitSolutions(solutions, rnd);
 
@@ -24,25 +30,32 @@ namespace GeneticCsp {
 
             SortMat(fitness, solutions);
 
-            while (!stop) { 
+            long elapsedTime = time.ElapsedMilliseconds;
+            Statistics(fitness[0], elapsedTime);
+            while (!stop) {
+                //Save currently best solution
                 best = fitness[0];
                 //make new children of the best solutions
                 Mate(solutions, rnd);
 
                 //Find the Fitness of the solutions
                 fitness = FitnessFind(solutions, cspGraph, fitness);               
-                
+             
                 //sort the solutions
                 SortMat(fitness, solutions);
-                
-                if(best == fitness[0]) {
+
+                elapsedTime = time.ElapsedMilliseconds;
+                Statistics(fitness[0], elapsedTime);
+
+                //Condition block checking if the algorithm should stop
+                if (best == fitness[0]) {
                     stagnated++;
-                } else {
+                } else {                    
                     stagnated = 0;
                 }
-
-                if (stagnated > 7)
+                if (stagnated > 20)
                     stop = true;
+                //number of iterations traken
                 i++;
             }
             //Print the solutions
@@ -242,34 +255,37 @@ namespace GeneticCsp {
         }
         static int[,] MakeGraph(int nodes) {
             Random rnd = new Random();
-            int random, connected;
+            int random;
+            int [] connected = new int[nodes];
             int[,] graph = new int[nodes, nodes];
             
             for (int i = 0; i < nodes; i++) {
-                connected = 0;
                 for (int j = i; j < nodes; j++) {
                     if (i == j)
                         graph[i, j] = 0;
                     else {
+                        if (nodes % 2 == 0) {
+                            if (connected[i] >= (nodes/2))
+                                break;
+                            }
+                        if (nodes % 2 != 0) {
+                            if (connected[i] >= (nodes/2) +1 )
+                                break;
+                        }
                         random = rnd.Next(2);
                         if (random == 1) {
-                            connected++;
+                            connected[i]++;
+                            connected[j]++;
                         }
-                        if (nodes % 2 == 0) {
-                            if (connected > (nodes / 2))
-                                break;
-                        }
-                        if (nodes % 2 != 0) {
-                            if (connected > (nodes / 2) + 1)
-                                break;
-                        }
+
                         graph[i, j] = random;
                         graph[j, i] = random;
                     }
                 }
-                if (connected == 0 && i != (nodes - 1)) {
+                if (connected[i] == 0 && i != (nodes - 1)) {
                     i--;
                 }
+                
             }
             return graph;
         }
@@ -293,6 +309,12 @@ namespace GeneticCsp {
                 color = colors[rnd.Next(colors.Length)];
 
             return color;
+        }
+        static void Statistics(int best, long elapsedTime) {
+            Convert.ToString(elapsedTime);
+            using (TextWriter sw = File.AppendText(@"C:\Users\Student\Documents\data3.csv")) {
+                sw.WriteLine("{0}ms;{1}", elapsedTime, best);
+            }
         }
     }
 }
