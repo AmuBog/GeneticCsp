@@ -6,10 +6,12 @@ namespace GeneticCsp {
             //Random number generator
             Random rnd = new Random();
             int best;
+            int i = 0;
             int stagnated = 0;
             bool stop = false;
             //The graph to be optimized
-            int[,] cspGraph = GetMatrix(2);
+            int[,] cspGraph = MakeGraph(12);
+            PrintGraph(cspGraph);
             int rows = 20;
             //Matix to store solutions
             char[,] solutions = new char[rows, cspGraph.GetLength(0)];
@@ -39,12 +41,13 @@ namespace GeneticCsp {
                     stagnated = 0;
                 }
 
-                if (stagnated > 10)
+                if (stagnated > 7)
                     stop = true;
+                i++;
             }
             //Print the solutions
             PrintMat(solutions, fitness);
-
+            Console.WriteLine("\nNumber of iterations: " + i);
             Console.Read();
         }
         //Method to make initial solutions
@@ -236,6 +239,60 @@ namespace GeneticCsp {
                     break;
             }
             return graph;
+        }
+        static int[,] MakeGraph(int nodes) {
+            Random rnd = new Random();
+            int random, connected;
+            int[,] graph = new int[nodes, nodes];
+            
+            for (int i = 0; i < nodes; i++) {
+                connected = 0;
+                for (int j = i; j < nodes; j++) {
+                    if (i == j)
+                        graph[i, j] = 0;
+                    else {
+                        random = rnd.Next(2);
+                        if (random == 1) {
+                            connected++;
+                        }
+                        if (nodes % 2 == 0) {
+                            if (connected > (nodes / 2))
+                                break;
+                        }
+                        if (nodes % 2 != 0) {
+                            if (connected > (nodes / 2) + 1)
+                                break;
+                        }
+                        graph[i, j] = random;
+                        graph[j, i] = random;
+                    }
+                }
+                if (connected == 0 && i != (nodes - 1)) {
+                    i--;
+                }
+            }
+            return graph;
+        }
+        static void PrintGraph(int[,] graph) {
+            int length = graph.GetLength(0);
+            for (int i = 0; i < length; i++) {
+                for (int j = 0; j < length; j++) {
+                    if (j == 0)
+                        Console.Write("\n" + graph[i, j]);
+                    else
+                         Console.Write(" " + graph[i, j]);
+                    }
+            }
+        }
+        static char GetColor(Random rnd, char originColor) {
+            char[] colors = { 'r', 'b', 'w' };
+            char color;
+
+            color = colors[rnd.Next(colors.Length)];
+            while (color.Equals(originColor))
+                color = colors[rnd.Next(colors.Length)];
+
+            return color;
         }
     }
 }
